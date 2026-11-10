@@ -8,12 +8,12 @@ class NjdfPlugin extends Plugin
     # 基础信息
     public $info = array(
         'name'        => 'Njdf',
-        'title'       => '南京代发',
-        'description' => '通过自建南京 API 接口发送邮件',
+        'title'       => '邮件代发',
+        'description' => '通过自建 API 接口发送邮件',
         'status'      => 1,
         'author'      => '小熊被',
         'version'     => '1.0',
-        'help_url'    => 'https://njdf.mxzc.top',
+        'help_url'    => 'https://your-domain.com',
     );
 
     const ATTACHMENTS_ADDRESS = './upload/common/email/';
@@ -67,7 +67,7 @@ class NjdfPlugin extends Plugin
             }
         }
 
-        $apiUrl = !empty($config['api_url']) ? $config['api_url'] : 'https://njdf.mxzc.top/';
+        $apiUrl = !empty($config['api_url']) ? $config['api_url'] : 'https://your-domain.com/mail.php;
 
         return $this->request($apiUrl, $data);
     }
