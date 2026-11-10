@@ -1,10 +1,22 @@
 # single_php_email_relay
 
-> 单文件 PHP 邮件代发 API —— 一个文件，同时支持 **SMTP 认证发信** 与 **本机 MX 直投**，自带 Token 鉴权、限流与反爬跳转。无需 Composer、无需框架，丢进任意 PHP 空间即可对外提供邮件接口。
+> **丢进任意 PHP 空间就能用的邮件代发的 API。** 一个文件，同时支持 **SMTP 认证发信** 与 **本机 MX 直投**，自带 Token 鉴权、限流与反爬跳转。**不挑环境**：VPS、独立服务器、虚拟主机、宝塔面板、NAS、树莓派——只要有 PHP，就能跑。直投模式下**只要虚拟主机放行 25 端口出站**，连 SMTP 账号都不用。
 
 ![PHP](https://img.shields.io/badge/PHP-7.4%20~%208.4-777BB4?logo=php&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue)
 ![Single File](https://img.shields.io/badge/Single--File-Yes-blue)
+![No Composer](https://img.shields.io/badge/No-Composer-success)
+![No Database](https://img.shields.io/badge/No-Database-success)
+
+---
+
+## 💡 为什么用它
+
+- **🌍 任意 PHP 环境可跑**：不依赖 Composer、不依赖框架、不依赖数据库、不依赖 Redis、不依赖任何 PECL 扩展。**只要你的虚拟主机支持 PHP，就能直接上传运行**。
+- **📤 虚拟主机也能发信**：很多虚拟主机、空间商默认**封禁原生 `mail()` 和 25 端口**，或者邮箱反解不对导致邮件进垃圾箱。本项目直投模式**只需 25 端口出站放行**即可工作；SMTP 模式甚至不需要 25 端口，走 465/587 就行。
+- **🔓 摆脱面板依赖**：不用在宝塔、cPanel 里折腾 SMTP 插件，不用改 `php.ini` 的 `sendmail_path`，不用装 msmtp。上传一个 `.php` 文件，浏览器打开能跳转，就说明跑起来了。
+- **🪶 极轻量**：整个文件 ~500 行，无外部依赖，加载快、内存占用极低。虚拟主机的几百 MB 内存限制完全够用。
+- **🔌 一次部署，多系统共用**：魔方财务、Typecho、WordPress、Discuz、自研系统……只要能把「发邮件」变成「发 HTTP 请求」，就能接进来。
 
 ---
 
@@ -12,7 +24,7 @@
 
 - 🗂 **单文件交付**：复制 `mail.php` 到服务器即完成部署
 - 📮 **双发送模式**
-  - `smtp`（默认）：走任意 SMTP 服务器认证发信，最通用，可绕过云厂商 25 端口封锁
+  - `smtp`（默认）：走任意 SMTP 服务器认证发信，最通用
   - `direct` / `host`：直接查收件人域名 MX，向 25 端口投递，**无需 SMTP 账号**
 - 🔑 **多 Token 鉴权**：可配置多个密钥，参数或 `X-Api-Token` 头任选其一
 - 🚦 **IP 限流**：单 IP 每分钟请求数可配（默认不限）
@@ -21,6 +33,27 @@
 - 🧩 **SMTP 白名单**：可限制只允许转发到指定 SMTP 主机，防止被当开放中继
 - 📝 **结构化返回**：`accepted` / `rejected` / 逐行 SMTP 日志一目了然
 - 🈶 **UTF-8 中文无忧**：主题、发件人名称、正文全部按 MIME 正确编码
+- 🔌 **生态集成**：附赠智简魔方（魔方财务）邮件插件，见下方专章
+
+---
+
+## 🖥 环境适配一览
+
+这是本项目**最核心的优势**：几乎你能想到的 PHP 环境，都能跑。
+
+| 环境 | 是否可跑 | 说明 |
+|---|---|---|
+| **传统虚拟主机**（阿里云虚拟主机、景安、Hostinger、Namecheap 等） | ✅ **推荐** | 上传 `mail.php` 即可，**直投模式只要 25 端口出站放行**；SMTP 模式用 465/587 通常更稳 |
+| **宝塔面板**（Linux/Windows） | ✅ | 创建站点，把 `mail.php` 扔进去，配置好 SSL 就能用 |
+| **cPanel / DirectAdmin 虚拟主机** | ✅ | 上传到 `public_html` 下，PHP 版本 ≥7.4 即可 |
+| **VPS / 独立服务器**（阿里云 ECS、腾讯云 CVM、AWS EC2 等） | ✅ | 注意：**多数云厂商默认封 25 端口出站**，直投需申请解封；SMTP 模式不受影响 |
+| **NAS**（群晖、威联通） | ✅ | 自带的 Web Station 跑 PHP 即可 |
+| **树莓派 / OpenWRT** | ✅ | 装个 php-fpm + nginx 就行 |
+| **共享空间 / 免费空间**（InfinityFree 等） | ⚠️ 部分可跑 | 有些免费空间禁用 `stream_socket_client`，需先测 |
+| **Windows IIS + PHP** | ✅ SMTP 模式 | 直投依赖 `getmxrr()`，Windows 下没有，会自动回退为直连域名本身，成功率较低 |
+| **Serverless**（Cloudflare Workers、Vercel、Netlify） | ❌ | 这些平台不是 PHP 运行时，无法直接跑。可考虑改用其它语言重写 |
+
+> **一句话**：**PHP ≥ 7.4 + 能发 HTTP 出站请求**，就能跑。剩下的只取决于你要发信的话，25 端口（直投）或 465/587（SMTP）是否放行。
 
 ---
 
@@ -30,9 +63,9 @@
 |---|---|
 | PHP | **≥ 7.4**（推荐 7.4 / 8.0 / 8.1 / 8.2 / 8.3 / 8.4） |
 | 扩展 | `openssl`（SSL/TLS 必需）、`json`（PHP 8 内置） |
-| 依赖 | 无（不依赖 Composer / 框架 / 数据库） |
+| 依赖 | 无（不依赖 Composer / 框架 / 数据库 / Redis） |
 | 权限 | 需可写 `sys_get_temp_dir()`（限流用；`MAX_PER_MINUTE=0` 时不需要） |
-| 网络 | SMTP 模式需能出站访问目标 SMTP 端口；直投模式需能出站访问 **25 端口** |
+| 出站 | SMTP 模式需放行目标 SMTP 端口；直投模式需放行 **25 端口** |
 
 ### PHP 版本兼容速查
 
@@ -47,13 +80,93 @@
 
 ---
 
+## 🏠 虚拟主机场景专题
+
+这是本项目**最想服务的场景**。虚拟主机通常有以下限制，本项目已经全部绕过或给出方案：
+
+### 限制 1：PHP `mail()` 函数不可用或被阉割
+
+虚拟主机为了防垃圾邮件，经常：
+- 关闭 `mail()` 函数（`disable_functions` 里禁止）
+- 把 `sendmail_path` 指向空
+- 邮箱反解（PTR）没做，发出去直接进垃圾箱
+
+**本项目的解法**：完全不依赖 `mail()`。走 `stream_socket_client()` 直连 SMTP 服务器（或直投到对方 MX），相当于在 PHP 里手写了一个 SMTP 客户端。
+
+### 限制 2：25 端口被封
+
+这是虚拟主机最常见的问题。很多空间商为了防垃圾邮件，**封禁 25 端口出站**。
+
+**本项目的解法**：
+- **如果 25 端口被封** → 改用 `mode=smtp`，走 465（SSL）或 587（STARTTLS）。绝大多数虚拟主机**不封 465/587**，因为这两个端口是正常用户发信端口。
+- **如果 25 端口放行** → 可以用 `mode=direct` 直投，**完全不需要 SMTP 账号**。这是最省事的模式，适合有固定公网 IP、PTR 反解正确的虚拟主机。
+
+> ✅ **判断方法**：在虚拟主机的 PHP 环境里跑一段测试代码：
+>
+> ```php
+> <?php
+> $fp = @fsockopen('smtp.qq.com', 25, $e, $s, 5);
+> echo $fp ? '25 端口可用' : "25 端口被禁：{$s} ({$e})";
+> ```
+>
+> 返回「可用」就能直投，否则乖乖用 SMTP 模式。
+
+### 限制 3：禁用 `stream_socket_client` 等函数
+
+部分严格的空间商会禁用 `stream_socket_client`、`fsockopen`、`pfsockopen`。
+
+**判断方法**：在虚拟主机 PHP 环境里跑：
+
+```php
+<?php
+var_dump(function_exists('stream_socket_client'));
+var_dump(function_exists('fsockopen'));
+var_dump(extension_loaded('openssl'));
+```
+
+三个全 `true` 才能用本项目的完整功能。如果 `stream_socket_client` 被禁，本项目无解，建议换空间商或升级到 VPS。
+
+### 限制 4：无法修改 `php.ini`
+
+部分空间商不允许用户改 `php.ini`。
+
+**本项目的解法**：不需要改 `php.ini`。所有配置都在 `mail.php` 顶部的常量里。超时时间、密钥、白名单都是 PHP 常量。
+
+### 限制 5：文件权限受限
+
+部分空间商禁止 PHP 写文件。
+
+**本项目的解法**：限流默认 `MAX_PER_MINUTE = 0`（不限流），此时**完全不写文件**。如果你要开启限流（`> 0`），需要确保 `sys_get_temp_dir()` 可写；如果不可写，建议保持 `0`，靠 Token 和 IP 白名单来限制访问。
+
+### 限制 6：只能通过 FTP 上传
+
+虚拟主机大多没有 SSH，只能 FTP。
+
+**本项目**：整个项目就一个 `mail.php`，FTP 拖上去就完事了。无 Composer、无 `npm install`、无数据库迁移。
+
+---
+
+### 虚拟主机最快上手（3 步）
+
+1. **FTP 上传**：把 `mail.php` 拖到 `public_html`（或 `wwwroot`、`htdocs`）下
+2. **改常量**：用文本编辑器打开 `mail.php`，修改 `REDIRECT_URL` 和 `API_TOKENS`
+3. **验证**：浏览器访问 `https://你的域名/mail.php`（不带参数），跳转到 `REDIRECT_URL` 就成功
+
+**发信调用**：用 `curl` 或任何 HTTP 客户端 POST 到 `https://你的域名/mail.php`，参数见下方「请求参数」章节。
+
+---
+
 ## 🚀 快速开始
 
 ### 1. 部署
 
 ```bash
+# VPS / 有 SSH 的环境
 git clone https://github.com/<your-name>/single_php_email_relay.git
-# 把 mail.php 上传到你的 PHP 空间，例如 /var/www/html/mail.php
+# 把 mail.php 上传到你的 PHP 空间
+
+# 虚拟主机 / 只有 FTP 的环境
+# 直接把 mail.php 拖到 public_html 下即可
 ```
 
 ### 2. 配置
@@ -62,12 +175,12 @@ git clone https://github.com/<your-name>/single_php_email_relay.git
 
 ```php
 /* 无参访问时的跳转地址（反爬用），置空 '' 关闭跳转 */
-const REDIRECT_URL = 'http://www.baidu.com';
+const REDIRECT_URL = 'https://your-domain.com';
 
 /* API 密钥列表，请求 token 命中任意一个即通过；留空数组 = 不校验 */
 const API_TOKENS = [
-    'password',
-    'hello-world',
+    '<YOUR_TOKEN>',
+    '<YOUR_TOKEN_2>',
 ];
 
 const CONNECT_TIMEOUT = 20;   // SMTP 连接超时（秒）
@@ -76,15 +189,17 @@ const ALLOWED_HOSTS   = [];   // SMTP 主机白名单，空 = 不限
 const DIRECT_HELO     = '';   // 直投 HELO 域名，留空自动取发件人域名
 ```
 
-> ⚠️ 上面 `password` / `hello-world` 仅为**示例**，开源前务必换成你自己生成的随机串：
+> ⚠️ `<YOUR_TOKEN>` / `<YOUR_TOKEN_2>` 是**占位符**，不是真密钥。部署前必须替换成你自己生成的随机串：
 >
 > ```bash
 > php -r "echo bin2hex(random_bytes(32));"
 > ```
+>
+> `REDIRECT_URL` 同样是占位符，替换成你自己的站点；不需要跳转就写 `''`。
 
 ### 3. 验证
 
-浏览器打开 `https://your-domain.com/mail.php`（不带参数）应跳转到 `http://www.baidu.com`，说明部署成功。
+浏览器打开 `https://your-domain.com/mail.php`（不带参数）应跳转到 `REDIRECT_URL`，说明部署成功。
 
 ---
 
@@ -136,6 +251,8 @@ const DIRECT_HELO     = '';   // 直投 HELO 域名，留空自动取发件人�
 1. 对每个收件人域名调用 `getmxrr()` 并按优先级排序；
 2. 依次尝试连接 MX 的 **25 端口**，投递成功即止。
 
+> 💡 **直投模式的最大优势**：不需要 SMTP 账号密码，只要 25 端口出站放行，一个虚拟主机就能对外「代发」邮件。适合有固定 IP、PTR 反解正确的空间。
+
 ---
 
 ## 📤 返回格式
@@ -171,14 +288,14 @@ const DIRECT_HELO     = '';   // 直投 HELO 域名，留空自动取发件人�
 
 ## 🧪 调用示例
 
-> 下面示例里的 `password` / `hello-world` 对应上面 `API_TOKENS` 的示例值，实际使用时换成你自己的。
+> 下面示例里的 `<YOUR_TOKEN>` 是占位符，替换成 `API_TOKENS` 里配置的真实值。
 
 ### ① SMTP 认证发信（最通用）
 
 ```bash
 curl -X POST 'https://your-domain.com/mail.php' \
   -H 'Content-Type: application/json' \
-  -H 'X-Api-Token: password' \
+  -H 'X-Api-Token: <YOUR_TOKEN>' \
   -d '{
     "host": "smtp.qq.com",
     "port": 465,
@@ -197,7 +314,7 @@ curl -X POST 'https://your-domain.com/mail.php' \
 ### ② 使用 STARTTLS（587 端口）
 
 ```bash
-curl -X POST 'https://your-domain.com/mail.php?token=hello-world' \
+curl -X POST 'https://your-domain.com/mail.php?token=<YOUR_TOKEN>' \
   -d 'host=smtp.gmail.com' \
   -d 'port=587' \
   -d 'secure=tls' \
@@ -209,12 +326,12 @@ curl -X POST 'https://your-domain.com/mail.php?token=hello-world' \
   -d 'body=纯文本正文'
 ```
 
-### ③ 直投模式（无需 SMTP 账号）
+### ③ 直投模式（无需 SMTP 账号，最适合虚拟主机）
 
 ```bash
 curl -X POST 'https://your-domain.com/mail.php' \
   -H 'Content-Type: application/json' \
-  -H 'X-Api-Token: password' \
+  -H 'X-Api-Token: <YOUR_TOKEN>' \
   -d '{
     "mode": "direct",
     "from": "noreply@your-domain.com",
@@ -231,7 +348,7 @@ const res = await fetch('https://your-domain.com/mail.php', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'X-Api-Token': 'password',
+    'X-Api-Token': '<YOUR_TOKEN>',
   },
   body: JSON.stringify({
     host: 'smtp.example.com',
@@ -254,7 +371,7 @@ console.log(await res.json());
 
 ```php
 $payload = [
-    'token'    => 'hello-world',
+    'token'    => '<YOUR_TOKEN>',
     'host'     => 'smtp.qq.com',
     'port'     => 465,
     'secure'   => 'ssl',
@@ -287,7 +404,7 @@ import requests
 
 resp = requests.post(
     "https://your-domain.com/mail.php",
-    headers={"X-Api-Token": "password"},
+    headers={"X-Api-Token": "<YOUR_TOKEN>"},
     json={
         "host": "smtp.qq.com",
         "port": 465,
@@ -307,98 +424,172 @@ print(resp.json())
 
 ---
 
-## 🌐 生态集成：魔方财务插件（Njdf）
+## 🔌 生态集成：智简魔方（魔方财务）邮件插件 Njdf
 
-仓库同时开源了配套的**魔方财务邮件插件** `NjdfPlugin.php`，让魔方财务系统把发信任务交给本服务执行：
+本仓库同时附带一个**智简魔方（魔方财务）邮件插件** `NjdfPlugin.php`。装上之后，魔方财务系统发出的所有邮件（注册、找回密码、工单、订单通知等）都会通过 HTTP 转交给本服务代发。
 
 ```
-魔方财务 ──HTTP/JSON──> single_php_email_relay ──SMTP──> 邮件服务器
+┌────────────┐  HTTP / JSON   ┌────────────────────────┐   SMTP    ┌────────────┐
+│ 魔方财务    │ ─────────────▶ │ single_php_email_relay │ ────────▶ │ 邮件服务器  │
+│ NjdfPlugin │  X-Api-Token   │        mail.php        │  SSL/TLS  │            │
+└────────────┘                └────────────────────────┘           └────────────┘
 ```
 
 ### 为什么需要它
 
-魔方财务自带的 SMTP 发信在以下场景容易失败：
+智简魔方自带的 SMTP 发信在下面这些场景非常容易失败：
 
-- 服务器所在云厂商**封禁 25 端口**出站
-- 目标 SMTP 服务器**被墙 / 跨区域超时**
-- 面板环境没有外网 DNS
+- 魔方财务所在云厂商**封禁 25 端口**出站（阿里云 / 腾讯云 / 华为云 / AWS / GCP 默认全封）
+- 魔方财务的服务器**网络受限**，连不上 SMTP（防火墙、IP 被 SMTP 拉黑）
+- 魔方财务的 PHP 环境**缺 openssl 或 curl 扩展**、TLS 版本旧
+- 想**集中管理发信**（多个魔方站点共用一个出信通道）
 
-把发信请求转发到一台能出网、能连 SMTP 的机器上处理，问题迎刃而解。
+插件把「连 SMTP」这件事从魔方财务主机上移走，交给一个能出网、能连 SMTP 的独立 relay 服务完成。**魔方财务只要能发 HTTP 请求就行。**
 
-### 部署
+### 目录结构
 
-1. 把 `NjdfPlugin.php` 放到：
+把 `NjdfPlugin.php` 放到魔方财务应用的插件目录下（具体以你使用的智简魔方版本为准，通常在 `app/mail/plugin/` 下新建 `njdf` 目录）：
 
 ```
-app/mail/plugin/njdf/NjdfPlugin.php
+app/
+└── mail/
+    └── plugin/
+        └── njdf/
+            └── NjdfPlugin.php
 ```
 
-2. 进后台 → **邮件设置** → 找到「南京代发」→ 安装
-3. 配置字段：
+插件命名空间为 `mail\njdf`，类名为 `NjdfPlugin`，`$info['name']` 为 `Njdf`，后台显示名称为「南京代发」。这些值不要随意改，改了需要同步改目录结构和文件名。
 
-| 字段 | 示例值 | 说明 |
-|---|---|---|
-| Relay API 地址 | `https://your-domain.com/mail.php` | 你的 `mail.php` 完整 URL |
-| API 密钥 | `password` 或 `hello-world` | 与 `mail.php` 的 `API_TOKENS` 一致 |
-| SMTP 主机 / 端口 / 加密 | `smtp.qq.com` / `465` / `ssl` | 与原来魔方财务的配置一致 |
-| SMTP 账号 / 密码 | `you@qq.com` / `SMTP授权码` | 同上 |
-| 发件人地址 / 名称 | `you@qq.com` / `你的站点名` | 邮件 `From:` 显示的内容 |
+### 安装步骤
 
-4. 保存后发一封测试邮件验证。
+1. 把 `NjdfPlugin.php` 按上面的目录结构放到服务器
+2. 登录魔方财务**管理后台**
+3. 进入 **系统设置 → 邮件设置**（不同版本菜单名略有差异，可能叫「邮件配置」「邮件通知」）
+4. 在邮件插件列表里找到「**南京代发**」，点击 **安装**
+5. 安装完成后点击 **配置**，按下表填写
+6. 保存后，在邮件设置页用「**发送测试邮件**」验证
 
-### 参数映射关系
+### 配置项说明
 
-| 插件字段 | 转发到 relay 的参数 |
+插件通过 `$params['config']` 读取以下字段（对应你在后台配置页里看到的输入框）：
+
+| 配置项（后台字段） | 插件内字段名 | 示例 | 说明 |
+|---|---|---|---|
+| Relay 接口地址 | `api_url` | `https://your-domain.com/mail.php` | 你部署的 `mail.php` 完整 URL。**必须带 `https://`**，不要漏 `/mail.php` |
+| 接口密钥 | `token` | `<YOUR_TOKEN>` | 必须与 `mail.php` 中 `API_TOKENS` 的某一项**完全一致** |
+| SMTP 服务器 | `host` | `smtp.qq.com` | 真正发信的 SMTP 服务器 |
+| SMTP 端口 | `port` | `465` | 465=SSL，587=STARTTLS，25=明文 |
+| 加密方式 | `smtpsecure` | `ssl` | `ssl` / `tls` / `none` |
+| SMTP 账号 | `username` | `you@qq.com` | 一般就是发件邮箱 |
+| SMTP 密码 / 授权码 | `password` | `xxxxxxxx` | **不是登录密码**，是邮箱后台生成的 SMTP 授权码 |
+| 发件人邮箱 | `systememail` | `you@qq.com` | 与 SMTP 账号一致，否则部分服务商会拒发 |
+| 发件人名称 | `fromname` | `你的站点名` | 收件人看到的「发件人」名字，支持中文 |
+
+### 参数映射（插件 → relay）
+
+插件里 `send()` 方法组装 JSON，字段对应关系如下，方便你排查：
+
+| 插件字段 | 转发到 relay 的 JSON 字段 |
 |---|---|
-| API 密钥 | `token`（同时以 `X-Api-Token` 头传） |
-| SMTP 主机 | `host` |
-| SMTP 端口 | `port` |
-| 加密方式 | `secure` |
-| SMTP 账号 | `username` |
-| SMTP 密码 | `password` |
-| 发件人地址 | `from` |
-| 发件人名称 | `from_name` |
-| 收件人 | `to` |
-| 邮件标题 | `subject` |
-| 邮件内容 | `body`（`is_html=1`） |
+| `config['token']` | `token`（同时放 `X-Api-Token` 请求头） |
+| `config['host']` | `host` |
+| `config['port']` | `port` |
+| `config['smtpsecure']` | `secure` |
+| `config['username']` | `username` |
+| `config['password']` | `password` |
+| `config['systememail']` | `from` |
+| `config['fromname']` | `from_name` |
+| `$params['email']` | `to` |
+| `$params['subject']` | `subject` |
+| `$params['content']` | `body` |
+| —（固定） | `is_html` = `1` |
 
-### ⚠️ 附件说明
+插件 `parseResponse()` 会识别 relay 返回的 `success` 字段：`true` 视为发送成功，`false` 时把 `message` 字段回传给魔方财务后台显示。
 
-插件会读取 `./upload/common/email/` 下的附件并作为 `attachments` 字段转发，但**当前版本的 `mail.php` 不解析 `attachments`**，因此：
+### 附件说明
 
-- **正文、标题、收件人正常送达**
-- **附件不会被发送**
+插件会把 `$params['attachments']` 里的附件读取出来、base64 编码后放进 `attachments` 数组转发。但**当前版本的 `mail.php` 不解析 `attachments` 字段**，所以：
 
-如果业务必须带附件，需要自行扩展 `mail.php` 的 MIME 组装部分（改为 `multipart/mixed`），或改用支持附件的标准 SMTP 直接投递。
+- ✅ **邮件正文、标题、收件人正常送达**
+- ❌ **附件不会随邮件发出**（收件人只收到正文）
 
-### 常见问题
+如果业务必须带附件（如账单 PDF、工单截图），需要：
+1. 自行扩展 `mail.php` 的 MIME 组装部分，改为 `multipart/mixed`；或者
+2. 不使用本插件，直接用魔方财务自带的原生 SMTP 发信（前提是网络能通）
 
-**Q：填了 `direct` 模式一直失败？**
-A：直投需 25 端口出站。几乎所有云厂商默认封禁 25，需工单解封，或改用 `smtp` 模式。
+### 调试与排查
 
-**Q：插件 `_config()` 后台空白 / 字段不显示？**
-A：不同魔方财务版本字段格式略有差异，参照同目录下其他邮件插件调整 `_config()` 返回结构。
+**第 1 步：确认 relay 本身能发信**
 
-**Q：接口请求失败：SSL certificate problem？**
-A：插件默认关闭了证书校验（`CURLOPT_SSL_VERIFYPEER=false`）。生产环境建议配置正式 HTTPS 证书并开启校验。
+绕过魔方财务，先用 `curl` 按「调用示例 ①」直接 POST 一次 `mail.php`。能收到测试邮件，说明 relay 正常，问题在插件或网络。
+
+**第 2 步：确认魔方财务能访问 relay**
+
+在魔方财务服务器上执行：
+
+```bash
+curl -X POST 'https://your-domain.com/mail.php' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Api-Token: <YOUR_TOKEN>' \
+  -d '{"to":"test@example.com","subject":"ping","body":"ping"}'
+```
+
+- 返回 `{"success":true,...}`：网络通、token 对，插件配置八成没问题
+- 返回 `{"success":false,"message":"接口密钥无效"}`：token 填错
+- 连接超时 / 502：魔方财务服务器到 relay 之间的网络问题，或被防火墙拦
+
+**第 3 步：看 relay 返回的 `log` 字段**
+
+relay 的 JSON 里 `log` 是逐行 SMTP 对话记录。魔方财务的插件通常把错误信息显示在后台，如果显示不完整，可以在 `NjdfPlugin.php` 的 `request()` 方法里临时 `error_log($response)`，然后看魔方财务的 PHP 错误日志。
+
+**第 4 步：常见错误对照表**
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 后台显示「接口密钥无效」 | `token` 填错 / 前后有空格 | 重新复制 `API_TOKENS` 里的值 |
+| 后台显示「SMTP 模式需要 host」 | `host` 没填 | 补齐 SMTP 服务器地址 |
+| 后台显示「SMTP 535 Authentication failed」 | SMTP 密码不是授权码 / 账号密码不对 | 去邮箱后台重新生成授权码 |
+| 后台显示「SMTP 550 ...」 | 收件人地址不存在 / 被收件方拒收 | 换收件地址测试 |
+| 后台显示「接口返回状态码：404」 | `api_url` 路径写错 | 检查是否漏了 `/mail.php` |
+| 后台显示「接口返回状态码：500」 | relay 主机上 `mail.php` 报 PHP 错误 | 看 relay 主机 PHP 错误日志 |
+| 后台显示「接口请求失败：Could not resolve host」 | 魔方财务服务器 DNS 有问题 | 改用 relay 的 IP 地址，或在 `/etc/hosts` 写死 |
+| 后台显示「接口请求失败：SSL certificate problem」 | relay 用了自签 HTTPS 证书 | 换正式证书（Let's Encrypt 免费），或临时把 `NjdfPlugin.php` 里 `CURLOPT_SSL_VERIFYPEER` 设为 `false` |
+| 发送成功但收不到 | 进了垃圾箱 / 附件丢失 / SMTP 服务商拦截 | 让收件人查垃圾箱；确认没依赖附件；换发信服务器测试 |
+
+### 与魔方财务原有 SMTP 配置的关系
+
+插件工作方式与魔方财务原生 SMTP 发信**互斥**：启用 Njdf 插件后，魔方财务不再自己连 SMTP，只向 relay 发 HTTP 请求。因此：
+
+- 插件配置里的 SMTP 字段仍然要填**真实的 SMTP 账号密码**，因为真正的 SMTP 认证是在 relay 上发生的
+- 魔方财务原生的 SMTP 配置可以保留也可以清空，插件不读它
+- 想切回原生 SMTP，把邮件插件切回「SMTP」即可，互不影响
+
+### 多站点共用
+
+一个 relay 可以同时服务多个魔方财务站点（或者任何其它通过 HTTP 调用的系统）：
+
+- 给每个站点在 `API_TOKENS` 里配一个**独立的 token**，方便单独吊销
+- 不同站点可以用不同的 SMTP 账号（请求里各自传自己的 `host` / `username` / `password`）
+- 如果想固定 SMTP 账号（对租户隐藏密码），可在 `mail.php` 主流程里把 `host` / `username` / `password` 改成读环境变量，插件里就不传这些字段了——但这样需要你自行做好多租户隔离，README 不展开
 
 ---
 
 ## 🔒 安全建议
 
-1. **务必修改默认密钥**：仓库里的 `password` / `hello-world` 只是示例，上线前换成随机串；不需要公网使用时设成 `[]` 并配合 IP 白名单。
-2. **强制 HTTPS**：SMTP 密码在请求体中明文传输，必须走 HTTPS。
-3. **配置 `ALLOWED_HOSTS`**：只允许转发到信任的 SMTP 主机，避免被拿去发垃圾邮件导致 IP 被拉黑。
-4. **设置 `MAX_PER_MINUTE`**：建议 10–60，防止接口被刷。
-5. **设置 `REDIRECT_URL`**：示例里是 `http://www.baidu.com`，正式部署时建议换成你自己的站点或置空关闭。
-6. **限流文件位置**：默认写入 `sys_get_temp_dir()/mailapi_rl/`，如介意请改路径或关闭限流。
+1. **替换掉所有占位符**：`<YOUR_TOKEN>`、`https://your-domain.com` 在部署前必须换成真实值；不需要公网使用时把 `API_TOKENS` 设成 `[]` 并配合 IP 白名单
+2. **强制 HTTPS**：SMTP 密码在请求体中明文传输，必须走 HTTPS。虚拟主机如果带免费 SSL（Let's Encrypt / cPanel AutoSSL），务必开启
+3. **配置 `ALLOWED_HOSTS`**：只允许转发到信任的 SMTP 主机，避免被拿去发垃圾邮件导致 IP 被拉黑
+4. **设置 `MAX_PER_MINUTE`**：建议 10–60，防止接口被刷。虚拟主机如果无法写临时文件，可保持 `0`
+5. **设置 `REDIRECT_URL`**：让无参数访问跳转到正常页面，降低被扫描器发现的概率
+6. **限流文件位置**：默认写入 `sys_get_temp_dir()/mailapi_rl/`，如介意请改路径或关闭限流
+7. **插件侧证书校验**：`NjdfPlugin.php` 里 `CURLOPT_SSL_VERIFYPEER` 默认是 `false`，正式部署建议改成 `true` 并要求 relay 使用正规 HTTPS 证书
 
 ---
 
 ## ❓ FAQ
 
 **Q1：直投模式失败，提示「连接超时」或「Connection refused」？**
-A：99% 是云厂商**封禁了 25 端口出站**（阿里云、腾讯云、AWS、GCP 默认全封）。请改用 SMTP 模式，或工单申请解封 25 端口。
+A：99% 是云厂商**封禁了 25 端口出站**。请改用 SMTP 模式，或工单申请解封 25 端口。虚拟主机用户请先跑「虚拟主机场景专题」里的端口测试代码。
 
 **Q2：SMTP 模式报「证书验证失败」？**
 A：代码默认 `verify_peer=true`。自建 SMTP（如 Postfix + 自签证书）需在 `Smtp::connect()` 中调整 `verify_peer` / `allow_self_signed`，或给服务器换 Let's Encrypt 正式证书。
@@ -413,25 +604,36 @@ A：直投对发信 IP 信誉要求极高，至少要具备：
 - **DKIM** 签名（本代码未内置，需自行在 MTA 层做）
 - **DMARC** 记录
 
-多数场景建议直接用 SMTP 模式，交给专业邮件服务商。
+多数场景建议直接用 SMTP 模式。
 
 **Q5：返回「接口密钥无效」？**
 A：确认 `API_TOKENS` 中确实包含该 token，且请求头 `X-Api-Token` 拼写正确、无多余空格。
 
-**Q6：收件人里有一个格式错误，会整体失败吗？**
+**Q6：一个收件人格式错误，会整体失败吗？**
 A：不会。`to` / `cc` / `bcc` 中不合法的地址会被静默过滤；SMTP 阶段被拒的收件人会出现在 `rejected` 中，其余继续投递。
 
 **Q7：中文主题乱码？**
-A：代码已对非 ASCII 内容做 `=?UTF-8?B?...?=` 编码，正常不会乱码。若仍乱码，检查收件客户端是否按 UTF-8 解析。
+A：代码已对非 ASCII 内容做 `=?UTF-8?B?...?=` 编码。若仍乱码，检查收件客户端是否按 UTF-8 解析。
+
+**Q8：魔方财务插件装上后后台发信报错，从哪查？**
+A：见「调试与排查」章节，按 1→2→3 顺序，先绕开插件测 relay，再测网络，最后看 relay 返回的 `log`。
+
+**Q9：虚拟主机 / 空间商禁用了 `stream_socket_client` 怎么办？**
+A：本项目无法工作。请换空间商，或升级到 VPS。跑「虚拟主机场景专题」里的测试代码确认。
+
+**Q10：虚拟主机只能 FTP 上传，没有 SSH，能用吗？**
+A：完全可以。整个项目只有一个 `mail.php`，FTP 拖上去，改两行常量，浏览器打开就能验证。
 
 ---
 
 ## 📋 已知限制
 
-- **不支持附件**（MIME 为单 part）
+- **不支持附件**（MIME 为单 part），魔方财务插件转发过来的附件会被丢弃
 - 不支持 DKIM 签名（直投模式易进垃圾箱）
 - 直投模式仅尝试 25 端口，不支持 587
 - 限流为单机文件计数，多实例部署不共享
+- 插件目前只针对智简魔方（魔方财务）体系，其它系统的接入请直接参考 HTTP 调用示例
+- 无法运行在非 PHP 环境（Serverless 平台如 Cloudflare Workers 不支持）
 
 ---
 
