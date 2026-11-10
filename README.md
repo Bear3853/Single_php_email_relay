@@ -171,7 +171,7 @@ var_dump(extension_loaded('openssl'));
 
 ```bash
 # VPS / 有 SSH 的环境
-git clone https://github.com/<your-name>/single_php_email_relay.git
+git clone https://github.com/Bear3853/single_php_email_relay.git
 # 把 mail.php 上传到你的 PHP 空间
 
 # 虚拟主机 / 只有 FTP 的环境
