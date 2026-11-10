@@ -438,28 +438,24 @@ print(resp.json())
 
 ### 为什么需要它
 
-智简魔方自带的 SMTP 发信在下面这些场景非常容易失败：
-
-- 魔方财务所在云厂商**封禁 25 端口**出站（阿里云 / 腾讯云 / 华为云 / AWS / GCP 默认全封）
-- 魔方财务的服务器**网络受限**，连不上 SMTP（防火墙、IP 被 SMTP 拉黑）
-- 魔方财务的 PHP 环境**缺 openssl 或 curl 扩展**、TLS 版本旧
-- 想**集中管理发信**（多个魔方站点共用一个出信通道）
+智简魔方自带的 SMTP 发信会露源
 
 插件把「连 SMTP」这件事从魔方财务主机上移走，交给一个能出网、能连 SMTP 的独立 relay 服务完成。**魔方财务只要能发 HTTP 请求就行。**
 
 ### 目录结构
 
-把 `NjdfPlugin.php` 放到魔方财务应用的插件目录下（具体以你使用的智简魔方版本为准，通常在 `app/mail/plugin/` 下新建 `njdf` 目录）：
+把 `NjdfPlugin.php` 放到魔方财务应用的邮箱插件目录下（具体以你使用的智简魔方版本为准，通常在 `public/plugins/mail/` 下新建 `njdf` 目录）：
 
 ```
-app/
+public/
 └── mail/
     └── plugin/
         └── njdf/
             └── NjdfPlugin.php
+            └── config.php
 ```
 
-插件命名空间为 `mail\njdf`，类名为 `NjdfPlugin`，`$info['name']` 为 `Njdf`，后台显示名称为「南京代发」。这些值不要随意改，改了需要同步改目录结构和文件名。
+插件命名空间为 `mail\njdf`，类名为 `NjdfPlugin`，`$info['name']` 为 `Njdf`，后台显示名称为「邮件代发」。这些值不要随意改，改了需要同步改目录结构和文件名。
 
 ### 安装步骤
 
