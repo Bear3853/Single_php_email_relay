@@ -1,6 +1,7 @@
 # single_php_email_relay
 
-> **丢进任意 PHP 空间就能用的邮件代发的 API。** 一个文件，同时支持 **SMTP 认证发信** 与 **本机 MX 直投**，自带 Token 鉴权、限流与反爬跳转。**不挑环境**：VPS、独立服务器、虚拟主机、宝塔面板、NAS、树莓派——只要有 PHP，就能跑。直投模式下**只要虚拟主机放行 25 端口出站**，连 SMTP 账号都不用。
+> **丢进任意 PHP 空间就能用的邮件代发的 API。
+> ** 一个文件，同时支持 **SMTP 认证发信** 与 **本机 MX 直投**，自带 Token 鉴权、限流与反爬跳转。**不挑环境**：VPS、独立服务器、虚拟主机、宝塔面板、NAS、树莓派——只要有 PHP，就能跑。直投模式下**只要虚拟主机放行 25 端口出站**，连 SMTP 账号都不用。
 
 ![PHP](https://img.shields.io/badge/PHP-7.4%20~%208.4-777BB4?logo=php&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPL--3.0-blue)
