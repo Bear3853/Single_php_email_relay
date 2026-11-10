@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-/* ==================== 反爬 / 强制跳转 ==================== */
+/* ==================== 反爬 ==================== */
 /**
  * 直接访问时自动跳转地址
  */
-const REDIRECT_URL = 'http://www.baidu.com';
+const REDIRECT_URL = 'https://your-domain.com';
 
 /* ------------------------------------------------------------
  * 判断是否有输入参数
@@ -49,13 +49,13 @@ if (!$hasInput && REDIRECT_URL !== '') {
  * 生成新密钥：php -r "echo bin2hex(random_bytes(32));"
  */
 const API_TOKENS = [
-    'password',   // ← 你原来的密钥
-    'hello-world',
+    '<YOUR_TOKEN>',
+    '<YOUR_TOKEN_2>',
     // '再填一个密钥',
 ];
 
-const CONNECT_TIMEOUT = 20;    // N秒内
-const MAX_PER_MINUTE  = 0;    // 单 IP 每分钟上限，0=不限
+const CONNECT_TIMEOUT = 20;    // SMTP 连接超时（秒）
+const MAX_PER_MINUTE  = 0;     // 单 IP 每分钟上限，0=不限
 const ALLOWED_HOSTS   = [];    // SMTP 白名单，空=不限。例 ['smtp.qq.com']
 const DIRECT_HELO     = '';    // 直投时 HELO 域名，留空默认发件人邮箱
 
