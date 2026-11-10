@@ -3,7 +3,7 @@
 > 单文件 PHP 邮件代发 API —— 一个文件，同时支持 **SMTP 认证发信** 与 **本机 MX 直投**，自带 Token 鉴权、限流与反爬跳转。无需 Composer、无需框架，丢进任意 PHP 空间即可对外提供邮件接口。
 
 ![PHP](https://img.shields.io/badge/PHP-7.4%20~%208.4-777BB4?logo=php&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-GPL--3.0-blue)
 ![Single File](https://img.shields.io/badge/Single--File-Yes-blue)
 
 ---
@@ -463,7 +463,18 @@ A：代码已对非 ASCII 内容做 `=?UTF-8?B?...?=` 编码，正常不会乱�
 
 ## 📄 License
 
-MIT License. 欢迎提 Issue / PR。
+本项目采用 **GNU General Public License v3.0（GPL-3.0）** 发布。
+
+- ✅ 可自由使用、修改、商用、再分发
+- ✅ 无需支付费用，无需事先授权
+- ⚠️ 若**修改后分发**（对外发布、随产品交付等），衍生作品必须以 GPL-3.0 兼容协议开源并提供完整源码
+- ⚠️ 不提供任何担保
+
+> **「自用」**：GPL-3.0 的开源义务只在**分发（distribution）**时触发。自己用、公司内部用、私有部署改代码，**没有**公开义务。
+>
+> **「HTTP 调用」**：本项目是独立部署的 Web API。第三方通过 HTTP 调用 `mail.php` 发信属于**独立程序间的网络调用**，**不构成衍生作品**，无需开源其自身代码。（若要覆盖 SaaS 场景，需改用 AGPL-3.0。）
+
+完整条款见仓库根目录 [`LICENSE`](./LICENSE) 文件。
 
 ## 🙏 致谢
 
