@@ -446,7 +446,7 @@ public/
 | `$params['content']` | `body` |
 | —（固定） | `is_html` = `1` |
 
-插件 `parseResponse()` 会识别 relay 返回的 `success` 字段：`true` 视为发送成功，`false` 时把 `message` 字段回传给魔方财务后台显示。
+插件 parseResponse() 会识别 relay 返回的 success 字段：true 视为发送成功，false 时把 message 字段回传给魔方财务后台显示。
 
 ### 附件说明
 
@@ -456,8 +456,7 @@ public/
 - ❌ **附件不会随邮件发出**（收件人只收到正文）
 
 如果业务必须带附件（如账单 PDF、工单截图），需要：
-1. 自行扩展 `mail.php` 的 MIME 组装部分，改为 `multipart/mixed`；或者
-2. 不使用本插件，直接用魔方财务自带的原生 SMTP 发信（前提是网络能通）
+自行扩展 `mail.php` 的 MIME 组装部分，改为 `multipart/mixed`
 
 ### 调试与排查
 
