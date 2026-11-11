@@ -91,9 +91,8 @@
 
 ### 虚拟主机最快上手（3 步）
 
-1. **FTP 上传**：把 `mail.php` 拖到 `public_html`（或 `wwwroot`、`htdocs`）下
+1. **FTP 上传**
 2. **改常量**：用文本编辑器打开 `mail.php`，修改 `REDIRECT_URL` 和 `API_TOKENS`
-3. **验证**：浏览器访问 `https://你的域名/mail.php`（不带参数），跳转到 `REDIRECT_URL` 就成功
 
 **发信调用**：用 `curl` 或任何 HTTP 客户端 POST 到 `https://你的域名/mail.php`，参数见下方「请求参数」章节。
 
