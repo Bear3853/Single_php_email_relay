@@ -491,7 +491,7 @@ relay 的 JSON 里 `log` 是逐行 SMTP 对话记录。魔方财务的插件通�
 | 后台显示「SMTP 模式需要 host」 | `host` 没填 | 补齐 SMTP 服务器地址 |
 | 后台显示「SMTP 535 Authentication failed」 | SMTP 密码不是授权码 / 账号密码不对 | 去邮箱后台重新生成授权码 |
 | 后台显示「SMTP 550 ...」 | 收件人地址不存在 / 被收件方拒收 | 换收件地址测试 |
-| 后台显示「接口返回状态码：404」 | 插件里写死的接口地址与实际部署不符 | 改 `NjdfPlugin.php` 里 `$apiUrl` 默认值，首页用 `/`，子文件用 `/mail.php` |
+| 后台显示「接口返回状态码：404」 | 插件里写死的接口地址与实际部署不符 | 改 NjdfPlugin.php 里 $apiUrl 默认值，首页用 `/`，子文件用 /mail.php |
 | 后台显示「接口返回状态码：500」 | relay 主机上 `mail.php` 报 PHP 错误 | 看 relay 主机 PHP 错误日志 |
 | 后台显示「接口请求失败：Could not resolve host」 | 魔方财务服务器 DNS 有问题 | 改用 relay 的 IP 地址，或在 `/etc/hosts` 写死 |
 | 后台显示「接口请求失败：SSL certificate problem」 | relay 用了自签 HTTPS 证书 | 换正式证书（Let's Encrypt 免费），或临时把 `NjdfPlugin.php` 里 `CURLOPT_SSL_VERIFYPEER` 设为 `false` |
