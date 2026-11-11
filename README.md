@@ -377,8 +377,6 @@ print(resp.json())
 
 ### 目录结构
 
-把 `NjdfPlugin.php` 放到魔方财务应用的邮箱插件目录下（具体以你使用的智简魔方版本为准，通常在 `public/plugins/mail/` 下新建 `njdf` 目录）：
-
 ```
 public/
 └── mail/
