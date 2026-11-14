@@ -48,7 +48,7 @@
 
 | 环境 | 是否可跑 | 说明 |
 |---|---|---|
-| **传统虚拟主机**（阿里云虚拟主机、景安、Hostinger、Namecheap 等） | ✅ **推荐** | 上传 `mail.php` 即可。 |
+| **传统虚拟主机**（MNBT、阿里云虚拟主机、景安、Hostinger、Namecheap 等） | ✅ **推荐** | 上传 `mail.php` 即可。 |
 | **宝塔面板**（Linux/Windows） | ✅ | 创建站点，把 `mail.php` 扔进去即可 |
 | **cPanel / DirectAdmin 虚拟主机** | ✅ | 上传到 `public_html` 下，PHP 版本 ≥7.4 即可 |
 | **VPS / 独立服务器**（阿里云 ECS、腾讯云 CVM、AWS EC2 等） | ✅ | 注意：**多数云厂商默认封 25 端口出站**，直投模式需要先工单申请解封；SMTP 模式走 465/587 不受影响 |
